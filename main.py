@@ -1,6 +1,6 @@
 import questionary
 
-from counter import Counter
+from habit import Habit
 from db import get_db
 from analyse import list_of_all_habits, list_of_periodicity, longest_run_streak, longest_ever_streak
 
@@ -31,7 +31,7 @@ def cli():
                     "What is the periodicity?",
                     choices=["daily", "weekly"]
                 ).ask()
-                counter = Counter(name, desc, per)
+                counter = Habit(name, desc, per)
                 counter.store(db)
 
             elif manage == "edit an existing habit":
@@ -45,7 +45,7 @@ def cli():
                     "What is the new periodicity?",
                     choices=["daily", "weekly"]
                 ).ask()
-                counter = Counter(name, desc, per)
+                counter = Habit(name, desc, per)
                 counter.edit(db)
 
             elif manage == "delete an existing habit":
@@ -54,7 +54,7 @@ def cli():
                     choices=habit_list
                 ).ask()
 
-                counter = Counter(counter_item_delete, "No description", "default")
+                counter = Habit(counter_item_delete, "No description", "default")
                 counter.delete(db)
 
 
@@ -63,15 +63,8 @@ def cli():
                 "Which task did you complete today?",
                 choices=habit_list
             ).ask()
-            # Helfervariable
 
-            # periodicity_current = None
-            # for sub in counter_name_list:
-            #   if sub['name'] == counter_item_current:
-            #      periodicity_current = sub['perio']
-            #     break
-
-            counter = Counter(counter_item_current, "No description", "default")
+            counter = Habit(counter_item_current, "No description", "default")
             # counter.increment()
             counter.add_event(db)
         elif choice == "Analyse my habits":

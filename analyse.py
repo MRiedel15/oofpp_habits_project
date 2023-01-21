@@ -1,22 +1,16 @@
-from db import get_tracker_data, get_counter_item, get_data_same_periodicity, get_periodicity_item, get_tracker_data_all
+from db import get_tracker_data, get_habit_item, get_data_same_periodicity, get_periodicity_item, get_tracker_data_all
 from datetime import datetime, timedelta
 
 
-def calculate_count(db, counter):
-    """
-    calculate the count of the counter.
-    :param db: an initialized sqlite3 database connection.
-    :param counter:name of the counter present in the db.
-    :return: length of the counter increment events
-    """
-    data = get_tracker_data(db, counter)
-    return len(data)
-
-
 def list_of_all_habits(db):
-    list_of_counter = get_counter_item(db)
+    """
+    to get a list of all habits incl. its values
+    :param db: an initialized sqlite3 database connection
+    :return:list of all habits and its values
+    """
+    list_of_counter = get_habit_item(db)
     counter_name_list = []
-    # loop counter list
+    # loop habit list
     for i in list_of_counter:
         counter_name_list.append({"name": i[0],
                                   "description": i[1],
@@ -25,6 +19,12 @@ def list_of_all_habits(db):
 
 
 def list_of_periodicity(db, periodicity):
+    """
+    to create list of habits with given periodicity
+    :param db: an initialized sqlite3 database connection
+    :param periodicity: given periodicity
+    :return: a list of habits with same periodicity
+    """
     period_list = get_data_same_periodicity(db, periodicity)
     hab_list = []
     for i in period_list:
@@ -34,6 +34,11 @@ def list_of_periodicity(db, periodicity):
 
 
 def create_single_tables(db):
+    """
+    to create single tracker tables for every habit
+    :param db: an initialized sqlite3 database connection
+    :return: single tracker table for every habit
+    """
     # sort tracker data by name
     res = get_tracker_data_all(db)
     name_lists = {}
@@ -46,35 +51,27 @@ def create_single_tables(db):
     return name_lists
 
 
-def list_of_names_tracker(db):
-    trackname = create_single_tables(db)
-    w = trackname.get("Read a book")
-    x = trackname.keys()
-    key_list = [key for key in x]
-    r = key_list[0]
-    period_1 = get_periodicity_item(db, "Read a book")
-    list_of_mist = [i[0] for i in period_1]
-    return list_of_mist
-
-
-def list_of_all_names(db):
-    # get list of all names
-    hab_list = list_of_all_habits(db)
-    names_list = [a['name'] for a in hab_list]
-    return names_list
-
-
 def longest_ever_streak(db):
+    """
+    to find the longest recorded streak
+    :param db: an initialized sqlite3 database connection
+    :return: the longest streak and its name of habit
+    """
     tracker_lists = create_single_tables(db)
+    # make list of keys from dictionary
     names_list = [key for key in tracker_lists.keys()]
-
+    # loop names_list and set up results in high_streak_list
     high_streak_list = []
     x = 0
     while x < len(names_list):
+        # get list of dates of actual habit
         dates_only = tracker_lists.get(names_list[x])
         nom = names_list[x]
+        # get periodicity of actual habit
         period_1 = get_periodicity_item(db, nom)
+        # string to datetime for calculation
         dates_datetime = [datetime.strptime(dates_only, "%Y-%m-%d") for dates_only in dates_only]
+        # calculate streaks for current habit depending on daily or weekly
         list_of_streaks = []
         my_streak = 1
         if period_1 == [("daily",)]:
@@ -85,7 +82,6 @@ def longest_ever_streak(db):
                 else:
                     my_streak = 1
                     continue
-                # error if no streaks
         else:
             for i in range(1, len(dates_datetime)):
                 if dates_datetime[i] - dates_datetime[i - 1] == timedelta(days=7):
@@ -94,7 +90,6 @@ def longest_ever_streak(db):
                 else:
                     my_streak = 1
                     continue
-                # error if no streaks
         x += 1
         list_of_streaks.sort(reverse=True)
         longest_streak = list_of_streaks#[0]
@@ -106,6 +101,12 @@ def longest_ever_streak(db):
 
 
 def longest_run_streak(db, spec):
+    """
+    to find the longest streak of a specific habit
+    :param db: an initialized sqlite3 database connection
+    :param spec: specific habit name that is to be analysed
+    :return: longest streak of specific habit
+    """
     track_list = get_tracker_data(db, spec)
     dates_only = [x[0] for x in track_list]
 
@@ -122,7 +123,6 @@ def longest_run_streak(db, spec):
                 else:
                     my_streak = 1
                     continue
-                # error if no streaks
         else:
             for i in range(1, len(dates_datetime)):
                 if dates_datetime[i] - dates_datetime[i - 1] == timedelta(days=7):
@@ -131,7 +131,6 @@ def longest_run_streak(db, spec):
                 else:
                     my_streak = 1
                     continue
-                # error if no streaks
         list_of_streaks.sort(reverse=True)
         longest_streak = list_of_streaks[0]
         return longest_streak
